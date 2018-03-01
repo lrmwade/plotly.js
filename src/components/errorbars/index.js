@@ -6,18 +6,26 @@
 * LICENSE file in the root directory of this source tree.
 */
 
-
 'use strict';
 
-var errorBars = module.exports = {};
+var calc = require('./calc');
 
-errorBars.attributes = require('./attributes');
+module.exports = {
+    moduleType: 'component',
+    name: 'errorbars',
 
-errorBars.supplyDefaults = require('./defaults');
+    attributes: require('./attributes'),
+    supplyDefaults: require('./defaults'),
 
-errorBars.calc = require('./calc');
+    calc: calc,
+    calcFromTrace: calcFromTrace,
 
-errorBars.calcFromTrace = function(trace, layout) {
+    plot: require('./plot'),
+    style: require('./style'),
+    hoverInfo: hoverInfo
+};
+
+function calcFromTrace(trace, layout) {
     var x = trace.x || [],
         y = trace.y || [],
         len = x.length || y.length;
@@ -33,19 +41,15 @@ errorBars.calcFromTrace = function(trace, layout) {
 
     calcdataMock[0].trace = trace;
 
-    errorBars.calc({
+    calc({
         calcdata: [calcdataMock],
         _fullLayout: layout
     });
 
     return calcdataMock;
-};
+}
 
-errorBars.plot = require('./plot');
-
-errorBars.style = require('./style');
-
-errorBars.hoverInfo = function(calcPoint, trace, hoverPoint) {
+function hoverInfo(calcPoint, trace, hoverPoint) {
     if((trace.error_y || {}).visible) {
         hoverPoint.yerr = calcPoint.yh - calcPoint.y;
         if(!trace.error_y.symmetric) hoverPoint.yerrneg = calcPoint.y - calcPoint.ys;
@@ -54,4 +58,4 @@ errorBars.hoverInfo = function(calcPoint, trace, hoverPoint) {
         hoverPoint.xerr = calcPoint.xh - calcPoint.x;
         if(!trace.error_x.symmetric) hoverPoint.xerrneg = calcPoint.x - calcPoint.xs;
     }
-};
+}

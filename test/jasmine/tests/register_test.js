@@ -5,21 +5,28 @@ describe('Test Registry', function() {
     'use strict';
 
     describe('register, getModule, and traceIs', function() {
+        var modulesKeys = Object.keys(Registry.modules);
+        var allTypesKeys = Object.keys(Registry.allTypes);
+        var allCategoriesKeys = Object.keys(Registry.allCategories);
+
+        var fakeModule = {
+            moduleType: 'trace',
+            name: 'newtype',
+            categories: ['red', 'green'],
+            calc: function() { return 42; },
+            plot: function() { return 1000000; },
+            basePlotModule: { name: 'newbaseplot' }
+        };
+
+        var fakeModule2 = {
+            moduleType: 'trace',
+            name: 'newtype',
+            categories: ['yellow', 'blue'],
+            plot: function() { throw new Error('nope!'); }
+        };
+
         beforeEach(function() {
-            this.modulesKeys = Object.keys(Registry.modules);
-            this.allTypesKeys = Object.keys(Registry.allTypes);
-            this.allCategoriesKeys = Object.keys(Registry.allCategories);
-
-            this.fakeModule = {
-                calc: function() { return 42; },
-                plot: function() { return 1000000; }
-            };
-            this.fakeModule2 = {
-                plot: function() { throw new Error('nope!'); }
-            };
-
-            Registry.register(this.fakeModule, 'newtype', ['red', 'green']);
-
+            Registry.register(fakeModule);
             spyOn(console, 'warn');
         });
 
@@ -30,19 +37,19 @@ describe('Test Registry', function() {
                 });
             }
 
-            revertObj(Registry.modules, this.modulesKeys);
-            revertObj(Registry.allTypes, this.allTypesKeys);
-            revertObj(Registry.allCategories, this.allCategoriesKeys);
+            revertObj(Registry.modules, modulesKeys);
+            revertObj(Registry.allTypes, allTypesKeys);
+            revertObj(Registry.allCategories, allCategoriesKeys);
         });
 
         it('should not reregister a type', function() {
-            Registry.register(this.fakeModule2, 'newtype', ['yellow', 'blue']);
+            Registry.register(fakeModule2);
             expect(Registry.allCategories.yellow).toBeUndefined();
         });
 
         it('should find the module for a type', function() {
-            expect(Registry.getModule('newtype')).toBe(this.fakeModule);
-            expect(Registry.getModule({type: 'newtype'})).toBe(this.fakeModule);
+            expect(Registry.getModule('newtype')).toBe(fakeModule);
+            expect(Registry.getModule({type: 'newtype'})).toBe(fakeModule);
         });
 
         it('should return false for types it doesn\'t know', function() {

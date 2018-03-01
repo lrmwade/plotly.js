@@ -12,15 +12,14 @@
 var d3 = require('d3');
 var isNumeric = require('fast-isnumeric');
 
-var Plotly = require('../plotly');
-var PlotSchema = require('../plot_api/plot_schema');
 var Registry = require('../registry');
+var PlotSchema = require('../plot_api/plot_schema');
 var axisIDs = require('../plots/cartesian/axis_ids');
 var Lib = require('../lib');
 var _ = Lib._;
 var Color = require('../components/color');
+var Grid = require('../components/grid');
 var BADNUM = require('../constants/numerical').BADNUM;
-var Grid = require('./grid');
 
 var plots = module.exports = {};
 
@@ -41,8 +40,6 @@ plots.layoutAttributes = require('./layout_attributes');
 plots.fontWeight = 'normal';
 
 var transformsRegistry = plots.transformsRegistry;
-
-var ErrorBars = require('../components/errorbars');
 
 var commandModule = require('./command');
 plots.executeAPICommand = commandModule.executeAPICommand;
@@ -106,7 +103,7 @@ plots.resize = function(gd) {
             // nor should it be included in the undo queue
             gd.autoplay = true;
 
-            Plotly.relayout(gd, { autosize: true }).then(function() {
+            Registry.call('relayout', [gd, { autosize: true }]).then(function() {
                 gd.changed = oldchanged;
                 resolve(gd);
             });
@@ -1674,7 +1671,7 @@ plots.doAutoMargin = function(gd) {
     // if things changed and we're not already redrawing, trigger a redraw
     if(!fullLayout._replotting && oldmargins !== '{}' &&
             oldmargins !== JSON.stringify(fullLayout._size)) {
-        return Plotly.plot(gd);
+        return Registry.call('plot', [gd]);
     }
 };
 
@@ -2118,7 +2115,7 @@ plots.transition = function(gd, data, layout, traces, frameOpts, transitionOpts)
 
         plots.doCalcdata(gd);
 
-        ErrorBars.calc(gd);
+        Registry.getComponentMethod('errorbars', 'calc')(gd);
 
         return Promise.resolve();
     }
@@ -2166,7 +2163,7 @@ plots.transition = function(gd, data, layout, traces, frameOpts, transitionOpts)
 
             if(frameOpts.redraw) {
                 gd._transitionData._interruptCallbacks.push(function() {
-                    return Plotly.redraw(gd);
+                    return Registry.call('redraw', [gd]);
                 });
             }
 
@@ -2238,7 +2235,7 @@ plots.transition = function(gd, data, layout, traces, frameOpts, transitionOpts)
 
         return Promise.resolve().then(function() {
             if(frameOpts.redraw) {
-                return Plotly.redraw(gd);
+                return Registry.call('redraw', [gd]);
             }
         }).then(function() {
             // Set transitioning false again once the redraw has occurred. This is used, for example,
