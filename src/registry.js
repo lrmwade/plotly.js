@@ -32,42 +32,44 @@ exports.traceLayoutAttributes = {};
 exports.localeRegistry = {};
 exports.apiMethodRegistry = {};
 
-// TODO !!!!!!!!
-
-/** Top-level register routine
+/**
+ * Top-level register routine, exported as Plotly.register
  *
  * @param {object array or array of objects} _modules :
  *  module object or list of module object to register.
  *
- */
-/**
- * register a module as the handler for a trace type
+ *  A valid `moduleType: 'trace'` module has fields:
+ *  - name {string} : the trace type
+ *  - categories {array} : categories associated with this trace type,
+ *                         tested with Register.traceIs()
+ *  - meta {object} : meta info (mostly for plot-schema)
  *
- * @param {object} _module the module that will handle plotting this trace type
- * @param {string} thisType
- * @param {array of strings} categoriesIn all the categories this type is in,
- *     tested by calls: traceIs(trace, oneCategory)
- * @param {object} meta meta information about the trace type
+ *  A valid `moduleType: 'locale'` module has fields:
+ *  - name {string} : the locale name. Should be a 2-digit language string ('en', 'de')
+ *                    optionally with a country/region code ('en-GB', 'de-CH'). If a country
+ *                    code is used but the base language locale has not yet been supplied,
+ *                    we will use this locale for the base as well.
+ *  - dictionary {object} : the dictionary mapping input strings to localized strings
+ *                          generally the keys should be the literal input strings, but
+ *                          if default translations are provided you can use any string as a key.
+ *  - format {object} : a `d3.locale` format specifier for this locale
+ *                      any omitted keys we'll fall back on en-US.
  *
- */
-/**
- * Register a new locale dictionary
+ *  A valid `moduleType: 'transform'` module has fields:
+ *  - name {string} : transform name
+ *  - transform {function} : default-level transform function
+ *  - calcTransform {function} : calc-level transform function
+ *  - attributes {object} : transform attributes declarations
+ *  - supplyDefaults {function} : attributes default-supply function
  *
- * @param {object} module
- * @param {string} moduleType
- *  should be 'locale' so that Plotly.register will forward to this function
- * @param {string} module.name
- *  the locale name. Should be a 2-digit language string ('en', 'de')
- *  optionally with a country/region code ('en-GB', 'de-CH'). If a country
- *  code is used but the base language locale has not yet been supplied,
- *  we will use this locale for the base as well.
- * @param {object} module.dictionary
- *  the dictionary mapping input strings to localized strings
- *  generally the keys should be the literal input strings, but
- *  if default translations are provided you can use any string as a key.
- * @param {object} module.format
- *  a `d3.locale` format specifier for this locale
- *  any omitted keys we'll fall back on en-US
+ *  A valid `moduleType: 'component'` module has fields:
+ *  - name {string} : the component name, used it with Register.getComponentMethod()
+ *                    to employ component method.
+ *
+ *  A valid `moduleType: 'apiMethod'` module has fields:
+ *  - name {string} : the api method name.
+ *  - fn {function} : the api method called with Register.call();
+ *
  */
 exports.register = function register(_modules) {
     if(!_modules) {
@@ -207,10 +209,11 @@ exports.getComponentMethod = function(name, method) {
 };
 
 /**
- * sdfds
+ * Call registered api method.
  *
- *
- *
+ * @param {string} name : api method name
+ * @param {array} args : array of argument passed to api method
+ * @return {any} : returns api method output
  */
 exports.call = function(name, args) {
     return exports.apiMethodRegistry[name].apply(null, args);

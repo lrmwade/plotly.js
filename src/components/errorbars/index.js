@@ -8,13 +8,44 @@
 
 'use strict';
 
+var Lib = require('../../lib');
+var overrideAll = require('../../plot_api/edit_types').overrideAll;
+
+var attributes = require('./attributes');
 var calc = require('./calc');
+
+var xyAttrs = {
+    error_x: Lib.extendFlat({}, attributes),
+    error_y: Lib.extendFlat({}, attributes)
+};
+delete xyAttrs.error_x.copy_zstyle;
+delete xyAttrs.error_y.copy_zstyle;
+delete xyAttrs.error_y.copy_ystyle;
+
+var xyzAttrs = {
+    error_x: Lib.extendFlat({}, attributes),
+    error_y: Lib.extendFlat({}, attributes),
+    error_z: Lib.extendFlat({}, attributes)
+};
+delete xyzAttrs.error_x.copy_ystyle;
+delete xyzAttrs.error_y.copy_ystyle;
+delete xyzAttrs.error_z.copy_ystyle;
+delete xyzAttrs.error_z.copy_zstyle;
 
 module.exports = {
     moduleType: 'component',
     name: 'errorbars',
 
-    attributes: require('./attributes'),
+    schema: {
+        traces: {
+            scatter: xyAttrs,
+            bar: xyAttrs,
+            histogram: xyAttrs,
+            scatter3d: overrideAll(xyzAttrs, 'calc', 'nested'),
+            scattergl: overrideAll(xyAttrs, 'calc', 'nested')
+        }
+    },
+
     supplyDefaults: require('./defaults'),
 
     calc: calc,
